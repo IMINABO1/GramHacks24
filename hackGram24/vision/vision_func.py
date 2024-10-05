@@ -6,7 +6,7 @@ from google.cloud.vision_v1 import types
 from Pillow_util import draw_borders, Image
 
 # Set up Google Vision API credentials
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r"serviceAccountToken.json"
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r""
 client = vision.ImageAnnotatorClient()
 
 # Function to process image and return the annotated image and detected objects as a set
