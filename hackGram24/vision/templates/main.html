@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iRecycle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="w-full bg-blue-100 p-4 flex justify-between items-center">
+        <h1 class="text-lg font-bold text-green-600"> <a href="{{url_for('home_index')}}"> IRECYCLE </a> </h1>
+        <div class="text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16s1-1 4-1 4 1 4 1 1-1 4-1 4 1 4 1v4H4v-4zM4 8v2c0 .552.224 1.052.586 1.414C5.475 12.303 6.633 13 8 13s2.525-.697 3.414-1.586C12.776 11.052 13 10.552 13 10V8c0-.552-.224-1.052-.586-1.414C11.525 6.697 10.367 6 9 6s-2.525.697-3.414 1.586C5.224 6.948 5 7.448 5 8v2z" />
+            </svg>
+        </div>
+    </nav>
+
+    <!-- Main Section -->
+    <main class="flex flex-col items-center justify-center px-4 py-8 w-full">
+        
+        <!-- Upload Button -->
+        <div class="mt-2">
+            
+                <label for="file-upload" class="bg-white border rounded-full px-4 py-2 shadow-md flex items-center space-x-2 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg"  class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l-4-4m0 0l4-4m-4 4h8M3 12a9 9 0 119 9V3a9 9 0 01-9 9z" />
+                    </svg>
+                    <span class="text-gray-500">Take a photo</span>
+                </label>
+            
+            <!-- Hidden input element for file upload -->
+            <input id="file-upload" type="file" accept="image/*" class="hidden z-20">
+        </div>
+
+        <!-- Image Section -->
+        <div class="mt-6 w-full max-w-sm bg-gray-100 p-4 rounded-lg">
+            <p class="font-semibold text-black mb-2">Image uploaded</p>
+            <div class="bg-gray-300 h-48 w-full rounded-lg flex items-center justify-center">
+                <div id="svg-logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3zm9 3v12m6-6H9" />
+                    </svg>
+                </div>
+                <!-- Image Preview Container -->
+                <img id="image-preview" class="hidden max-w-full max-h-full h-40 object-contain" alt="Preview">
+            </div>
+        </div>
+
+        <!-- Recycling Advice Section -->
+        <div class="mt-8 w-full max-w-sm" id="recycling-advice-section">
+            <h3 class="text-lg font-semibold mb-4">Recycling advice</h3>
+            <p class="text-gray-500 mb-4">Below are the results:</p>
+            <!-- This will be populated with data from the server -->
+            <div id="recycling-results" class="space-y-4">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+
+        const svgLogo = document.getElementById('svg-logo');
+        const imageUpload = document.getElementById('file-upload');
+        const imagePreview = document.getElementById('image-preview');
+        const recyclingResults = document.getElementById('recycling-results');
+
+        imageUpload.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    svgLogo.classList.add('hidden');
+                    imagePreview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+
+                // Upload and process image
+                uploadAndProcessImage(file);
+            }
+        });
+
+        function uploadAndProcessImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/process_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResults(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                recyclingResults.innerHTML = '<p>Error processing image. Please try again.</p>';
+            });
+        }
+
+        function displayResults(data) {
+            // Clear the previous results
+            recyclingResults.innerHTML = '';
+
+            // Populate detected objects and recycling advice dynamically
+            if (data.detected_objects && data.recycling_info) {
+                data.detected_objects.forEach((object, index) => {
+                    const recyclingInfo = data.recycling_info[object] || 'No info available';
+
+                    recyclingResults.innerHTML += `
+                        <div class="bg-blue-100 p-8 rounded-lg ">
+                            <div class="font-semibold text-gray-700">${object}</div>
+                            <p class="text-sm text-gray-500">${recyclingInfo}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                recyclingResults.innerHTML = '<p>No data available. Please try again.</p>';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -3,3 +3,7 @@ hackGram24/vision/Include
 hackGram24/vision/Lib
 hackGram24/vision/Scripts
 hackGram24/vision/pyvenv.cfg
+hackGram24/vision/serviceAccountToken.json
+hackGram24/vision/apiKey.py
+hackGram24/vision/templates/images
+locate.html
